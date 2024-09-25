@@ -73,6 +73,7 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 plugins=(git iterm2 dotenv)
 
 # brew install zsh-autocomplete
+brew install zsh-autocomplete
 source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 bindkey              '^I'         menu-complete
 bindkey '$terminfo[kcbt]' reverse-menu-complete
@@ -110,9 +111,15 @@ alias zshrc='vim ~/.zshrc'                              # Open `.zshrc` for edit
 alias zshrcr='source ~/.zshrc'                       # Reload `.zshrc` without restarting shell
 alias zshrcx='echo "Restarting zsh...";exec zsh'          # Restart zsh shell
 
-# Languages
+# Languages and frameworks
 alias tf='terraform'
 alias py3='python3'
+alias cq="cloudquery"
+alias env-dbt='source ~/Documents/dev/env/dbt-env/bin/activate'
+
+# Git
+git config --global user.name $DOTFILE_GITCONFIG_USER
+git config --global user.email $DOTFILE_GITCONFIG_EMAIL
 
 # Docker
 alias dc='docker compose'
@@ -142,3 +149,11 @@ alias lt='la -ltr'  # List by modification time, reverse order
 alias grep='grep --color=auto'  # Grep with color
 alias please='sudo'
 alias pretty-please="echo 'Executing with 'pretty please with a cherry on top' command.';sudo"
+
+# pnpm
+export PNPM_HOME="/Users/aditapalshkar/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

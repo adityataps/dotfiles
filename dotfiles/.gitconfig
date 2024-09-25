@@ -1,6 +1,4 @@
 [user]
-	name = Aditya Tapshalkar
-	email = aditya.taps@gmail.com
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
@@ -22,7 +20,8 @@
 	scomb = "!git stash; git compom; git stash pop; git co -b"
 	pushu = !git push --set-upstream origin $(git getcurr)
     lol = log --oneline --graph
+	cfg = config
 [credential]
 	helper = osxkeychain
-[http]
-	postBuffer = 524288000
+[pull]
+	rebase = true
