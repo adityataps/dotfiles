@@ -72,7 +72,6 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git iterm2 dotenv)
 
-# brew install zsh-autocomplete
 brew install zsh-autocomplete
 source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 bindkey              '^I'         menu-complete
@@ -107,9 +106,9 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh='mate ~/.oh-my-zsh'
 
 # ~/.zshrc
-alias zshrc='vim ~/.zshrc'                              # Open `.zshrc` for editing
+alias zshrc='vim ~/.zshrc'                           # Open `.zshrc` for editing
 alias zshrcr='source ~/.zshrc'                       # Reload `.zshrc` without restarting shell
-alias zshrcx='echo "Restarting zsh...";exec zsh'          # Restart zsh shell
+alias zshrcx='echo "Restarting zsh...";exec zsh'     # Restart zsh shell
 
 # Languages and frameworks
 alias tf='terraform'
