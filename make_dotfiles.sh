@@ -136,5 +136,5 @@ else
     make_dotfile "$source_file" "$dotfile"
 fi
 
-# Restart the current shell to use the updated commands
+# Restart the current shell to use the updated configs
 exec $SHELL
