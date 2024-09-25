@@ -2,11 +2,10 @@
 
 # Display usage information
 usage() {
-    echo "Usage: $0 [-p <path>] <dotfile_name>"
-    echo "       $0                                 # Run against all dotfiles in the dotfiles/ directory"
+    echo "Usage: $0 <path>"
+    echo "       $0         # Run against all dotfiles in the dotfiles/ directory"
     echo "Options:"
-    echo "  -p <path>     Specify the path to the source dotfile."
-    echo "  -h            Display this help message."
+    echo "  -h                      Display this help message."
     exit 1
 }
 
@@ -19,44 +18,7 @@ dotfile=""
 path_provided=0
 process_all=0
 
-# Check if no arguments are provided
-if [[ $# -eq 0 ]]; then
-    process_all=1
-fi
-
-# Parse command-line arguments
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -p|--path)
-            if [[ -n "$2" && ! "$2" =~ ^- ]]; then
-                source_file="$2"
-                path_provided=1
-                shift 2
-            else
-                echo "Error: -p requires a non-empty option argument."
-                usage
-            fi
-            ;;
-        -h|--help)
-            usage
-            ;;
-        -*)
-            echo "Unknown option: $1"
-            usage
-            ;;
-        *)
-            if [[ -z "$dotfile" ]]; then
-                dotfile="$1"
-                shift
-            else
-                # TODO: Support multiple dotfiles
-                echo "Error: Multiple dotfile names provided. Use the ./make_dotfiles.sh command with no arguments" 
-                usage
-            fi
-            ;;
-    esac
-done
-
+# To prevent backups from taking too much space, we can retain a specified number of backups
 retain_n_backups() {
     local backup_dir=$1
     local backup_count=10   # Retain top n=10 backups
@@ -77,10 +39,10 @@ retain_n_backups() {
 # Function to replace a single dotfile
 make_dotfile() {
     local source_file="$1"
-    local dotfile_name="$2"
+    local dotfile_name=$(basename "$source_file")
     local target_file="$HOME/$dotfile_name"
 
-    echo
+    echo "---"
 
     if [[ -f "$source_file" ]]; then
         # Backup the existing target file if it exists
@@ -102,38 +64,48 @@ make_dotfile() {
     fi
 }
 
-# Main logic
+# Check if no arguments are provided
+if [[ $# -eq 0 ]]; then
+    process_all=1
+fi
 
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            usage
+            ;;
+        *)
+            echo $1
+            if [[ -n "$1" && ! "$1" =~ ^- ]]; then
+                source_file="$1"
+                path_provided=1
+                make_dotfile $source_file
+                shift 1
+            else
+                # TODO: Support multiple dotfiles
+                echo "Error: Multiple dotfile names provided. Use the ./make_dotfiles.sh command with no arguments" 
+                usage
+            fi
+            ;;
+    esac
+done
+
+# Process all dotfiles
 if [[ $process_all -eq 1 ]]; then
     echo "Processing all dotfiles in the current directory..."
-
 
     # Iterate over all files in the dotfiles directory
     for file in ./dotfiles/*; do
         if [[ -f "$file" ]]; then
             source_file="$file"
-            dotfile_name=$(basename "$source_file")
-            make_dotfile "$source_file" "$dotfile_name"
+            make_dotfile "$source_file"
         fi
     done
-else
-    if [[ $path_provided -eq 1 ]]; then
-        if [[ -z "$source_file" ]]; then
-            echo "Error: Source file path not provided."
-            usage
-        fi
-        # Extract the dotfile name from the provided path
-        dotfile=$(basename "$source_file")
-    else
-        if [[ -z "$dotfile" ]]; then
-            echo "Error: Dotfile name not provided."
-            usage
-        fi
-        source_file="./$dotfi∏le"
-    fi
-
-    # Call the replace function for the specified dotfile
-    make_dotfile "$source_file" "$dotfile"
 fi
 
 # Restart the current shell to use the updated configs
