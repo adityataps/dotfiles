@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # ASCII art
 base64 -d <<<"CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg\
