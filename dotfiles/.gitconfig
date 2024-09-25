@@ -1,0 +1,28 @@
+[user]
+	name = Aditya Tapshalkar
+	email = aditya.taps@gmail.com
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+[alias]
+	getdef = !git remote show origin | sed -n \"/HEAD branch/s/.*: //p\"    # Gets default branch for current repo
+	getcurr = !git rev-parse --abbrev-ref HEAD
+	co = checkout
+	com = !git checkout $(git getdef)
+	pom = !git pull origin $(git getdef)
+	comb = "!git compom; git co -b"
+	compom = "!git com; git pom"
+	fa = fetch --all
+	st = status
+	fast = "!git fa; git st"
+	up = pull
+	spomp = "!git stash; git pom; git stash pop"
+	scomb = "!git stash; git compom; git stash pop; git co -b"
+	pushu = !git push --set-upstream origin $(git getcurr)
+    lol = log --oneline --graph
+[credential]
+	helper = osxkeychain
+[http]
+	postBuffer = 524288000
