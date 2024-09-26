@@ -25,6 +25,7 @@ packages=(
     pnpm
     terraform
     python
+    pyenv
 )
 
 # Install packages
