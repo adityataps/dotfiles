@@ -72,7 +72,6 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git iterm2 dotenv)
 
-brew install zsh-autocomplete
 source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 bindkey              '^I'         menu-complete
 bindkey '$terminfo[kcbt]' reverse-menu-complete
@@ -117,10 +116,6 @@ alias tf='terraform'
 alias py3='python3'
 alias cq="cloudquery"
 alias env-dbt='source ~/Documents/dev/env/dbt-env/bin/activate'
-
-# Git
-git config --global user.name $DOTFILE_GITCONFIG_USER
-git config --global user.email $DOTFILE_GITCONFIG_EMAIL
 
 # Docker
 alias dc='docker compose'

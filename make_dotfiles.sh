@@ -12,27 +12,27 @@ IFlNLiAgICAsIEwuICAgSTggCiBgV2JtZCJNTUwuYFlibWQ5JyAgYE1ibW8uSk1NTC4uSk1NTC4uSk1N
 QnIE05bW1tUCcgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg\
 ICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCg=="
 
+# Enable dotglob to include hidden files
+shopt -s dotglob
+
+# Back up variables
+source ./vars.sh
+
+# Initialize variables
+source_file=""
+path_provided=0
+process_all=0
+install_packages=0
+
 # Display usage information
 usage() {
     echo "Usage: $0 <path>"
     echo "       $0         # Run against all dotfiles in the dotfiles/ directory"
     echo "Options:"
     echo "  -h                      Display this help message."
+    echo "  -i, --install-packages  Install packages before processing dotfiles."
     exit 1
 }
-
-# Enable dotglob to include hidden files
-shopt -s dotglob
-
-# Initialize variables
-source_file=""
-dotfile=""
-path_provided=0
-process_all=0
-
-# Back up variables
-export DOTFILE_GITCONFIG_USER="$(git config --get user.name)"
-export DOTFILE_GITCONFIG_EMAIL="$(git config --get user.email)"
 
 # To prevent backups from taking too much space, we can retain a specified number of backups
 retain_n_backups() {
@@ -91,6 +91,10 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             usage
             ;;
+        -i|--install-packages)
+            install_packages=1
+            shift
+            ;;
         -*)
             echo "Unknown option: $1"
             usage
@@ -101,18 +105,19 @@ while [[ $# -gt 0 ]]; do
                 source_file="$1"
                 path_provided=1
                 make_dotfile $source_file
-                shift 1
-            else
-                # TODO: Support multiple dotfiles
-                echo "Error: Multiple dotfile names provided. Use the ./make_dotfiles.sh command with no arguments" 
-                usage
+                shift
             fi
             ;;
     esac
 done
 
 # Process all dotfiles
-if [[ $process_all -eq 1 ]]; then
+if [[ $path_provided -eq 0 ]]; then
+    if [[ $install_packages -eq 1 ]]; then
+        echo "Installing packages..."
+        ./install_packages.sh
+    fi
+
     echo "Processing all dotfiles in the current directory..."
 
     # Iterate over all files in the dotfiles directory
@@ -124,5 +129,5 @@ if [[ $process_all -eq 1 ]]; then
     done
 fi
 
-# Restart the current shell to use the updated configs
-exec $SHELL
+# Run postmake.sh
+./postmake.sh
