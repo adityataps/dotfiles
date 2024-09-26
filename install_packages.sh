@@ -22,7 +22,6 @@ packages=(
     zsh
     zsh-autocomplete
     node
-    pnpm
     terraform
     python
     pyenv
