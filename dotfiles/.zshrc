@@ -76,6 +76,8 @@ brew install zsh-autocomplete
 source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 bindkey              '^I'         menu-complete
 bindkey '$terminfo[kcbt]' reverse-menu-complete
+bindkey "^[[1;2A" up-line-or-history    # Shift + Up Arrow
+bindkey "^[[1;2B" down-line-or-history  # Shift + Down Arrow
 
 source $ZSH/oh-my-zsh.sh
 
