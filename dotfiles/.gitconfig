@@ -1,4 +1,5 @@
 [user]
+	# Populated by dotfiles
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
@@ -25,3 +26,5 @@
 	helper = osxkeychain
 [pull]
 	rebase = true
+[core]
+	editor = code --wait
