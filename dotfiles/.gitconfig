@@ -27,4 +27,4 @@
 [pull]
 	rebase = true
 [core]
-	editor = code --wait
+	editor = cursor --wait
