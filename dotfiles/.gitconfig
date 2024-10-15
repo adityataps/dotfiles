@@ -13,15 +13,17 @@
 	pom = !git pull origin $(git getdef)
 	comb = "!git compom; git co -b"
 	compom = "!git com; git pom"
+	spomp = "!git stash; git pom; git stash pop"
+	scomp = "!git stash; git compom; git stash pop"
+	scomb = "!git scomp; git co -b"
 	fa = fetch --all
 	st = status
 	fast = "!git fa; git st"
 	up = pull
-	spomp = "!git stash; git pom; git stash pop"
-	scomb = "!git stash; git compom; git stash pop; git co -b"
 	pushu = !git push --set-upstream origin $(git getcurr)
-    lol = log --oneline --graph
+	lol = log --oneline --graph
 	cfg = config
+	rim = !git rebase -i $(git getdef)
 [credential]
 	helper = osxkeychain
 [pull]
