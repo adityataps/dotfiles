@@ -25,6 +25,7 @@ packages=(
     terraform
     python
     pyenv
+    dbeaver-community
 )
 
 # Install packages
