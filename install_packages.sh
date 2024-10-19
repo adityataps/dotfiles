@@ -16,6 +16,7 @@ brew upgrade
 
 # List of packages to install
 packages=(
+    tree
     git
     mosh
     docker
