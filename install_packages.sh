@@ -27,6 +27,7 @@ packages=(
     terraform
     python
     pyenv
+    pipx
     dbeaver-community
 )
 
