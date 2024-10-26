@@ -77,6 +77,7 @@ bindkey              '^I'         menu-complete
 bindkey '$terminfo[kcbt]' reverse-menu-complete
 bindkey "^[[1;2A" up-line-or-history    # Shift + Up Arrow
 bindkey "^[[1;2B" down-line-or-history  # Shift + Down Arrow
+zstyle ':autocomplete:*' delay 0.5  # seconds (float)
 
 source $ZSH/oh-my-zsh.sh
 
