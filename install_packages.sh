@@ -24,7 +24,8 @@ packages=(
     zsh
     zsh-autocomplete
     node
-    terraform
+#    terraform
+    opentofu
     python
     pyenv
     pipx
