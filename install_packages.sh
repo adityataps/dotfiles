@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Early exit if OS is not Darwin (macOS)
+[ "$(uname -s)" != "Darwin" ] && echo "This script only runs on macOS" && exit 0
+
 # Install Homebrew if it's not already installed
 if ! command -v brew &> /dev/null; then
     echo "Installing Homebrew..."
