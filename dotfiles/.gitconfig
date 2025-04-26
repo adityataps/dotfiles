@@ -24,8 +24,6 @@
 	lol = log --oneline --graph
 	cfg = config
 	rim = !git rebase -i $(git getdef)
-[credential]
-	helper = osxkeychain
 [pull]
 	rebase = true
 [core]
