@@ -47,7 +47,7 @@ retain_n_backups() {
         NUM_TO_DELETE=$(( ${#backups[@]} - $backup_count ))
         for (( i=$backup_count; i<${#backups[@]}; i++ )); do
             rm "$backup_dir/${backups[$i]}"
-            echo "Deleted old backup:\t$backup_dir${backups[$i]}"
+            echo -e "Deleted old backup:\t$backup_dir${backups[$i]}"
         done
     fi
 }
@@ -70,7 +70,7 @@ make_dotfile() {
             mkdir -p $backup_dir
             cp "$target_file" "$backup_file"
             retain_n_backups $backup_dir
-            echo "Backup created:\t\t$backup_file"
+            echo -e "Backup created:\t\t$backup_file"
         fi
         # Replace the target file with the source file
         cp "$source_file" "$target_file"
