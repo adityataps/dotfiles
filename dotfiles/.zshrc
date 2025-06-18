@@ -149,7 +149,7 @@ alias please='sudo'
 alias pretty-please="echo 'Executing with 'pretty please with a cherry on top' command.';sudo"
 
 # pnpm
-export PNPM_HOME="/Users/aditapalshkar/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;

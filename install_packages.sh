@@ -32,7 +32,7 @@ packages=(
     python
     pyenv
     pipx
-    dbeaver-community
+#    dbeaver-community
 )
 
 # Install packages
