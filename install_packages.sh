@@ -25,7 +25,7 @@ packages=(
     mosh
     docker
     zsh
-#    zsh-autocomplete
+    zsh-autocomplete
     node
 #    terraform
     opentofu
