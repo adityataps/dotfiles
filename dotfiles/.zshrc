@@ -162,9 +162,8 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 # nvm end
 
+export GITCONFIG_SAFE_DIRECTORY=/mnt/devbox
 [[ -v GITCONFIG_SAFE_DIRECTORY ]] && find "$GITCONFIG_SAFE_DIRECTORY" -name '.git' -type d -exec bash -c 'git config --global --add safe.directory ${0%/.git}' {} \; || echo "GITCONFIG_SAFE_DIRECTORY is not set";
-
-
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -181,4 +180,4 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-
+export CUDA_VISIBLE_DEVICES=0
