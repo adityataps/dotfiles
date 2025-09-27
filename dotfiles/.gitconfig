@@ -26,5 +26,3 @@
 	rim = !git rebase -i $(git getdef)
 [pull]
 	rebase = true
-[core]
-	editor = code --wait
