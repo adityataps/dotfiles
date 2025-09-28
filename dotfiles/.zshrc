@@ -138,7 +138,7 @@ alias brewup='brew update && brew upgrade && brew cleanup'
 
 # Directory
 alias ls='ls -G'    # Enable colors for ls
-alias ll='ls -l'    # Long listing format
+alias ll='ls -lh'   # Long listing format
 alias la='ll -a'    # Long listing with hidden files
 alias lx='la -d .*' # List only hidden files
 alias lt='la -ltr'  # List by modification time, reverse order
