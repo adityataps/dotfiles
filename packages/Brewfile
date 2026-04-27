@@ -1,0 +1,25 @@
+# Brewfile — managed via `brew bundle`
+# Install:  brew bundle install --file=packages/Brewfile
+# Capture:  brew bundle dump --force --file=packages/Brewfile
+
+# Formulae
+brew "ack"
+brew "docker"
+brew "gh"
+brew "git"
+brew "go"
+brew "htop"
+brew "neovim"
+brew "nvm"
+brew "opentofu"
+brew "python"
+brew "rust"
+brew "tree"
+brew "uv"
+brew "zsh"
+#brew "mosh"
+#brew "terraform"
+
+# Casks
+cask "claude"
+cask "iterm2"

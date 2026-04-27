@@ -15,7 +15,7 @@ ICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
 # Enable dotglob to include hidden files
 shopt -s dotglob
 
-# Back up variables
+# Capture git identity before symlinking .gitconfig
 source ./vars.sh
 
 # Initialize variables
@@ -34,47 +34,25 @@ usage() {
     exit 1
 }
 
-# To prevent backups from taking too much space, we can retain a specified number of backups
-retain_n_backups() {
-    local backup_dir=$1
-    local backup_count=10   # Retain top n=10 backups
-
-    # Find and remove the oldest backups, keeping only the most recent $backup_count
-    backups=($(ls -t "$backup_dir"))  # List all backup files in dotenv backup dir sorted by time
-
-    # If there are more than $backup_count backups, delete the oldest ones
-    if (( ${#backups[@]} > $backup_count )); then
-        NUM_TO_DELETE=$(( ${#backups[@]} - $backup_count ))
-        for (( i=$backup_count; i<${#backups[@]}; i++ )); do
-            rm "$backup_dir/${backups[$i]}"
-            echo -e "Deleted old backup:\t$backup_dir${backups[$i]}"
-        done
-    fi
-}
-
-# Function to replace a single dotfile
+# Function to symlink a single dotfile
 make_dotfile() {
     local source_file="$1"
     local dotfile_name=$(basename "$source_file")
     local target_file="$HOME/$dotfile_name"
+    # Symlinks require an absolute path as the source
+    local abs_source
+    abs_source="$(cd "$(dirname "$source_file")" && pwd)/$(basename "$source_file")"
 
     echo "---"
 
     if [[ -f "$source_file" ]]; then
-        # Backup the existing target file if it exists
-        if [[ -f "$target_file" ]]; then
-            local timestamp
-            timestamp=$(date +%Y%m%d%H%M%S)
-            backup_dir="$target_file"_backups/
-            backup_file="$target_file"_backups/$timestamp
-            mkdir -p $backup_dir
-            cp "$target_file" "$backup_file"
-            retain_n_backups $backup_dir
-            echo -e "Backup created:\t\t$backup_file"
+        # Warn if replacing a real file (not already a symlink) — user may want to review it first
+        if [[ -f "$target_file" && ! -L "$target_file" ]]; then
+            echo -e "Warning: replacing real file $target_file — original is gone after this."
         fi
-        # Replace the target file with the source file
-        cp "$source_file" "$target_file"
-        echo "Updated $target_file with '$source_file'."
+        # Create symlink (-f replaces any existing file or symlink)
+        ln -sf "$abs_source" "$target_file"
+        echo -e "Symlinked:\t\t$target_file -> $abs_source"
     else
         echo "Error: Source file '$source_file' not found."
     fi

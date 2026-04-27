@@ -3,7 +3,30 @@
 # Early exit if OS is not Darwin (macOS)
 [ "$(uname -s)" != "Darwin" ] && echo "This script only runs on macOS" && exit 0
 
-# Install Homebrew if it's not already installed
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BREWFILE="$SCRIPT_DIR/packages/Brewfile"
+
+usage() {
+    echo "Usage: $0 [--capture]"
+    echo "Options:"
+    echo "  --capture    Overwrite Brewfile with currently installed Homebrew packages"
+    exit 1
+}
+
+# Parse arguments
+for arg in "$@"; do
+    case "$arg" in
+        --capture)
+            echo "Capturing installed packages -> $BREWFILE"
+            brew bundle dump --force --file="$BREWFILE"
+            echo "Done. Review and commit $BREWFILE."
+            exit 0
+            ;;
+        *) echo "Unknown option: $arg"; usage ;;
+    esac
+done
+
+# Install Homebrew if not present
 if ! command -v brew &> /dev/null; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -12,40 +35,13 @@ else
     echo "Homebrew is already installed."
 fi
 
-# Make sure we're using the latest Homebrew
 brew update
-
-# Upgrade any already-installed formulae
 brew upgrade
 
-# List of packages to install
-packages=(
-    tree
-    git
-    mosh
-    docker
-    zsh
-#    zsh-autocomplete
-    node
-#    terraform
-    opentofu
-    python
-    pyenv
-    pipx
-#    dbeaver-community
-)
+# Install all packages from Brewfile
+# HOMEBREW_CASK_OPTS=--adopt takes ownership of pre-existing apps not yet managed by Homebrew
+HOMEBREW_CASK_OPTS="--adopt" brew bundle install --file="$BREWFILE"
 
-# Install packages
-for package in "${packages[@]}"; do
-    if brew list "$package" &>/dev/null; then
-        echo "${package} is already installed."
-    else
-        echo "Installing ${package}..."
-        brew install "$package"
-    fi
-done
-
-# Cleanup
 brew cleanup
 
 echo "Brew installation and package setup complete."

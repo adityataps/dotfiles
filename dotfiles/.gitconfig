@@ -1,5 +1,6 @@
-[user]
-	# Populated by dotfiles
+[include]
+	# Machine-specific identity (user.name, user.email) — not tracked in repo
+	path = ~/.gitconfig.local
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f

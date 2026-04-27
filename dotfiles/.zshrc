@@ -70,7 +70,7 @@ zstyle ':omz:update' mode auto      # update automatically without asking
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git iterm2 dotenv)
+plugins=(git gh iterm2)
 
 # source $HOMEBREW_PREFIX/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 # bindkey              '^I'         menu-complete
@@ -79,6 +79,7 @@ plugins=(git iterm2 dotenv)
 # bindkey "^[[1;2B" down-line-or-history  # Shift + Down Arrow
 # zstyle ':autocomplete:*' delay 0.5  # seconds (float)
 
+zstyle :omz:plugins:iterm2 shell-integration yes
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
@@ -113,8 +114,8 @@ alias zshrcr='source ~/.zshrc'                       # Reload `.zshrc` without r
 alias zshrcx='echo "Restarting zsh...";exec zsh'     # Restart zsh shell
 
 # Languages and frameworks
-alias tf='terraform'
-alias otf='tofu'
+# alias tf='terraform'
+alias tf='tofu'
 alias py3='python3'
 alias cq="cloudquery"
 alias env-dbt='source ~/Documents/dev/env/dbt-env/bin/activate'
