@@ -15,8 +15,10 @@ ICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
 # Enable dotglob to include hidden files
 shopt -s dotglob
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Capture git identity before symlinking .gitconfig
-source ./vars.sh
+source "$SCRIPT_DIR/vars.sh"
 
 # Initialize variables
 source_file=""
@@ -93,13 +95,13 @@ done
 if [[ $path_provided -eq 0 ]]; then
     if [[ $install_packages -eq 1 ]]; then
         echo "Installing packages..."
-        ./install_packages.sh
+        "$SCRIPT_DIR/install_packages.sh"
     fi
 
     echo "Processing all dotfiles in the current directory..."
 
     # Iterate over all files in the dotfiles directory
-    for file in ./dotfiles/*; do
+    for file in "$SCRIPT_DIR/dotfiles/"*; do
         if [[ -f "$file" ]]; then
             source_file="$file"
             make_dotfile "$source_file"
@@ -108,4 +110,4 @@ if [[ $path_provided -eq 0 ]]; then
 fi
 
 # Run postmake.sh
-./postmake.sh
+"$SCRIPT_DIR/postmake.sh"

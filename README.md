@@ -32,37 +32,34 @@ Dotfiles are configuration files for various applications and tools. This reposi
 
 ## Installation
 
-To get started with these dotfiles, follow the steps below:
+### Fresh machine (one command)
 
-1. **Clone the Repository:**
+```zsh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/adityataps/dotfiles/main/bootstrap.sh)"
+```
 
-   ```zsh
-   git clone https://github.com/adityataps/dotfiles.git
-   ```
+This installs Xcode CLT, Homebrew, git, clones the repo, and runs full setup automatically.
 
-2. **Run the Setup Script:**
+### Existing machine
 
-   Execute the `make_dotfiles` script to set up the environment. Use the `-i` flag to install necessary packages.
-
-   ```zsh
-   ./make_dotfiles -i
-   ```
-
-3. **Update Your Shell:**
-
-   If necessary, update your shell configuration to apply the changes.
+```zsh
+git clone https://github.com/adityataps/dotfiles.git
+cd dotfiles
+./make_dotfiles.sh -i   # -i installs Homebrew packages
+```
 
 ## Usage
 
-After installation, your development environment should be configured with the provided dotfiles. You can customize these files further to suit your personal preferences.
+Dotfiles in `dotfiles/` are symlinked to `$HOME` — editing `~/.zshrc` is editing the repo file directly.
+
+Machine-specific shell config (aliases, env vars that don't belong in the repo) goes in `~/.zshrc.local`, which is sourced automatically at the end of `.zshrc`.
 
 ## Updating
 
-To update your dotfiles, pull the latest changes from the repository and rerun the setup script:
-
 ```zsh
+cd ~/dotfiles
 git pull origin main
-./make_dotfiles
+./make_dotfiles.sh
 ```
 
 ## Contributing

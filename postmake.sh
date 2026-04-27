@@ -20,5 +20,5 @@ fi
 # macOS keychain credential helper
 [ "$(uname -s)" = "Darwin" ] && git config --file "$GITCONFIG_LOCAL" credential.helper osxkeychain
 
-# Restart the current shell to use the updated configs
-$SHELL
+# Replace the current shell process with a fresh one to apply updated configs
+exec $SHELL
