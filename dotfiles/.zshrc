@@ -114,8 +114,8 @@ alias zshrcr='source ~/.zshrc'                       # Reload `.zshrc` without r
 alias zshrcx='echo "Restarting zsh...";exec zsh'     # Restart zsh shell
 
 # Languages and frameworks
-# alias tf='terraform'
-alias tf='tofu'
+alias tf='terraform'
+alias otf='tofu'
 alias py3='python3'
 alias cq="cloudquery"
 alias env-dbt='source ~/Documents/dev/env/dbt-env/bin/activate'
