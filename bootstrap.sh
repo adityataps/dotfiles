@@ -6,7 +6,7 @@
 set -e
 
 DOTFILES_REPO="https://github.com/adityataps/dotfiles.git"
-DOTFILES_DIR="$HOME/dotfiles"
+DOTFILES_DIR="$HOME/.dotfiles"
 
 echo "==> Bootstrapping dotfiles"
 
