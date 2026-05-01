@@ -50,14 +50,14 @@ cd dotfiles
 
 ## Usage
 
-Dotfiles in `dotfiles/` are symlinked to `$HOME` — editing `~/.zshrc` is editing the repo file directly.
+Dotfiles in `.dotfiles/` are symlinked to `$HOME` — editing `~/.zshrc` is editing the repo file directly.
 
 Machine-specific shell config (aliases, env vars that don't belong in the repo) goes in `~/.zshrc.local`, which is sourced automatically at the end of `.zshrc`.
 
 ## Updating
 
 ```zsh
-cd ~/dotfiles
+cd ~/.dotfiles
 git pull origin main
 ./make_dotfiles.sh
 ```
