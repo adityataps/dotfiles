@@ -46,7 +46,7 @@ for index in "${!sources[@]}"; do
     source_file="${sources[$index]}"
     [[ -f "$source_file" && -r "$source_file" ]] || die "Not a readable file: $source_file"
     source_file="$(cd "$(dirname "$source_file")" && pwd -P)/$(basename "$source_file")"
-    sources[$index]="$source_file"
+    sources[index]="$source_file"
     target="$HOME/$(basename "$source_file")"
     [[ "$source_file" != "$target" ]] || die "Source is already at its destination: $target"
     [[ ! -d "$target" ]] || die "Refusing to replace a directory: $target"
