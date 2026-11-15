@@ -1,24 +1,33 @@
 #!/bin/bash
-# Scripts to run after making dotfiles
-
-# Git: write machine-specific identity to ~/.gitconfig.local (not tracked in repo)
-# This keeps name/email out of dotfiles/.gitconfig when it's symlinked.
+# Initialize machine-local Git settings without overwriting existing preferences.
+set -euo pipefail
 GITCONFIG_LOCAL="$HOME/.gitconfig.local"
-if [[ ! -f "$GITCONFIG_LOCAL" ]]; then
-    echo "Creating $GITCONFIG_LOCAL with identity from vars.sh..."
-    cat > "$GITCONFIG_LOCAL" <<EOF
-[user]
-	name = $DOTFILE_GITCONFIG_USER
-	email = $DOTFILE_GITCONFIG_EMAIL
-EOF
-    echo "Created $GITCONFIG_LOCAL"
-else
-    echo "$GITCONFIG_LOCAL already exists — skipping identity write."
-    echo "Edit it manually to change user.name / user.email."
+if [[ -e "$GITCONFIG_LOCAL" || -L "$GITCONFIG_LOCAL" ]]; then
+    [[ -f "$GITCONFIG_LOCAL" ]] || { printf 'Invalid Git config: %s\n' "$GITCONFIG_LOCAL" >&2; exit 1; }
+    git config --file "$GITCONFIG_LOCAL" --list >/dev/null
+    # Preserve local preferences; fill only missing identity fields from vars.sh.
+    if [[ -z "$(git config --file "$GITCONFIG_LOCAL" --includes --get user.name || true)" && -n "${DOTFILE_GITCONFIG_USER:-}" ]]; then
+        git config --file "$GITCONFIG_LOCAL" user.name "$DOTFILE_GITCONFIG_USER"
+    fi
+    if [[ -z "$(git config --file "$GITCONFIG_LOCAL" --includes --get user.email || true)" && -n "${DOTFILE_GITCONFIG_EMAIL:-}" ]]; then
+        git config --file "$GITCONFIG_LOCAL" user.email "$DOTFILE_GITCONFIG_EMAIL"
+    fi
+    exit 0
 fi
 
-# macOS keychain credential helper
-[ "$(uname -s)" = "Darwin" ] && git config --file "$GITCONFIG_LOCAL" credential.helper osxkeychain
+[[ -n "${DOTFILE_GITCONFIG_USER:-}" && -n "${DOTFILE_GITCONFIG_EMAIL:-}" ]] || {
+    printf 'Missing Git identity; run make_dotfiles.sh first.\n' >&2
+    exit 1
+}
 
-# Replace the current shell process with a fresh one to apply updated configs
-exec $SHELL
+# Git handles quoting names containing quotes, comment characters, or whitespace.
+umask 077
+local_config_tmp="$(mktemp "$HOME/.gitconfig.local.XXXXXX")"
+trap 'rm -f "$local_config_tmp"' EXIT
+git config --file "$local_config_tmp" user.name "$DOTFILE_GITCONFIG_USER"
+git config --file "$local_config_tmp" user.email "$DOTFILE_GITCONFIG_EMAIL"
+if [[ "$(uname -s)" = Darwin ]]; then
+    git config --file "$local_config_tmp" credential.helper osxkeychain
+fi
+mv "$local_config_tmp" "$GITCONFIG_LOCAL"
+printf 'Created %s\n' "$GITCONFIG_LOCAL"

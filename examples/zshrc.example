@@ -1,0 +1,4 @@
+# Copy to ~/.zshrc.local and customize; this file is never auto-deployed.
+# alias env-dbt='source "$HOME/Documents/dev/env/dbt-env/bin/activate"'
+# export EDITOR=nvim
+# export PROJECTS_DIR="$HOME/Documents/dev"

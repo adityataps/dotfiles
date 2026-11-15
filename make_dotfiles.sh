@@ -1,113 +1,133 @@
 #!/bin/bash
+# Deploy from any working directory; compatible with macOS Bash 3.2.
+set -euo pipefail
+shopt -s dotglob nullglob
 
-# ASCII art
-base64 -d <<<"CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg\
-ICAgCiAgICAgICAsLCAgICAgICAgICAgICAgICAgICAgLC4uLiwsICAgICwsICAgICAgICAgICAgICAgICAgCiAgIC\
-AgYDdNTSAgICAgICAgICAgbW0gICAgIC5kJyAiImRiICBgN01NICAgICAgICAgICAgICAgICAgCiAgICAgICBNTSAg\
-ICAgICAgICAgTU0gICAgIGRNYCAgICAgICAgIE1NICAgICAgICAgICAgICAgICAgCiAgLE0iImJNTSAgLHBXIldxLm\
-1tTU1tbSAgbU1NbW1gN01NICAgIE1NICAuZ1AiWWEgICxwUCJZYmQgCixBUCAgICBNTSA2VycgICBgV2IgTU0gICAg\
-IE1NICAgIE1NICAgIE1NICxNJyAgIFliIDhJICAgYCIgCjhNSSAgICBNTSA4TSAgICAgTTggTU0gICAgIE1NICAgIE\
-1NICAgIE1NIDhNIiIiIiIiIGBZTU1NYS4gCmBNYiAgICBNTSBZQS4gICAsQTkgTU0gICAgIE1NICAgIE1NICAgIE1N\
-IFlNLiAgICAsIEwuICAgSTggCiBgV2JtZCJNTUwuYFlibWQ5JyAgYE1ibW8uSk1NTC4uSk1NTC4uSk1NTC5gTWJtbW\
-QnIE05bW1tUCcgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg\
-ICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCg=="
-
-# Enable dotglob to include hidden files
-shopt -s dotglob
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-# Capture git identity before symlinking .gitconfig
-source "$SCRIPT_DIR/vars.sh"
-
-# Initialize variables
-source_file=""
-path_provided=0
-process_all=0
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+dry_run=0
 install_packages=0
+deploy_gitconfig=0
+sources=()
+backup_dir=""
 
-# Display usage information
 usage() {
-    echo "Usage: $0 <path>"
-    echo "       $0         # Run against all dotfiles in the dotfiles/ directory"
-    echo "Options:"
-    echo "  -h                      Display this help message."
-    echo "  -i, --install-packages  Install packages before processing dotfiles."
-    exit 1
+    cat <<USAGE
+Usage: $0 [options] [file ...]
+Without files, deploy everything in dotfiles/.
+  -i, --install-packages  Install missing Homebrew packages and Oh My Zsh first
+  -n, --dry-run           Preview without writing files or installing anything
+  -h, --help              Show this help
+Existing files and symlinks are backed up before replacement.
+USAGE
 }
 
-# Function to symlink a single dotfile
-make_dotfile() {
-    local source_file="$1"
-    local dotfile_name=$(basename "$source_file")
-    local target_file="$HOME/$dotfile_name"
-    # Symlinks require an absolute path as the source
-    local abs_source
-    abs_source="$(cd "$(dirname "$source_file")" && pwd)/$(basename "$source_file")"
+die() { printf 'Error: %s\n' "$*" >&2; exit 1; }
 
-    echo "---"
-
-    if [[ -f "$source_file" ]]; then
-        # Warn if replacing a real file (not already a symlink) — user may want to review it first
-        if [[ -f "$target_file" && ! -L "$target_file" ]]; then
-            echo -e "Warning: replacing real file $target_file — original is gone after this."
-        fi
-        # Create symlink (-f replaces any existing file or symlink)
-        ln -sf "$abs_source" "$target_file"
-        echo -e "Symlinked:\t\t$target_file -> $abs_source"
-    else
-        echo "Error: Source file '$source_file' not found."
-    fi
-}
-
-# Check if no arguments are provided
-if [[ $# -eq 0 ]]; then
-    process_all=1
-fi
-
-# Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -h|--help)
-            usage
-            ;;
-        -i|--install-packages)
-            install_packages=1
-            shift
-            ;;
-        -*)
-            echo "Unknown option: $1"
-            usage
-            ;;
-        *)
-            echo $1
-            if [[ -n "$1" && ! "$1" =~ ^- ]]; then
-                source_file="$1"
-                path_provided=1
-                make_dotfile $source_file
-                shift
-            fi
-            ;;
+        -h|--help) usage; exit 0 ;;
+        -i|--install-packages) install_packages=1 ;;
+        -n|--dry-run) dry_run=1 ;;
+        --) shift; sources+=("$@"); break ;;
+        -*) die "Unknown option: $1 (see --help)" ;;
+        *) sources+=("$1") ;;
     esac
+    shift
 done
 
-# Process all dotfiles
-if [[ $path_provided -eq 0 ]]; then
-    if [[ $install_packages -eq 1 ]]; then
-        echo "Installing packages..."
-        "$SCRIPT_DIR/install_packages.sh"
-    fi
+# Personal banner, kept as readable text rather than an encoded blob.
+cat <<'BANNER'
+       ,,                    ,...,,    ,,
+     `7MM           mm     .d' ""db  `7MM
+       MM           MM     dM`         MM
+  ,M""bMM  ,pW"Wq.mmMMmm  mMMmm`7MM    MM  .gP"Ya  ,pP"Ybd
+,AP    MM 6W'   `Wb MM     MM    MM    MM ,M'   Yb 8I   `"
+8MI    MM 8M     M8 MM     MM    MM    MM 8M"""""" `YMMMa.
+`Mb    MM YA.   ,A9 MM     MM    MM    MM YM.    , L.   I8
+ `Wbmd"MML.`Ybmd9'  `Mbmo.JMML..JMML..JMML.`Mbmmd' M9mmmP'
+BANNER
 
-    echo "Processing all dotfiles in the current directory..."
+if [[ ${#sources[@]} -eq 0 ]]; then
+    sources=("$SCRIPT_DIR"/dotfiles/*)
+fi
+[[ ${#sources[@]} -gt 0 ]] || die "No dotfiles found."
 
-    # Iterate over all files in the dotfiles directory
-    for file in "$SCRIPT_DIR/dotfiles/"*; do
-        if [[ -f "$file" ]]; then
-            source_file="$file"
-            make_dotfile "$source_file"
-        fi
+# Validate the entire selection before installing packages or changing files.
+targets=()
+for index in "${!sources[@]}"; do
+    source_file="${sources[$index]}"
+    [[ -f "$source_file" && -r "$source_file" ]] || die "Not a readable file: $source_file"
+    source_file="$(cd "$(dirname "$source_file")" && pwd -P)/$(basename "$source_file")"
+    sources[index]="$source_file"
+    target="$HOME/$(basename "$source_file")"
+    [[ "$source_file" != "$target" ]] || die "Source is already at its destination: $target"
+    [[ ! -d "$target" ]] || die "Refusing to replace a directory: $target"
+    for previous in "${targets[@]+"${targets[@]}"}"; do
+        [[ "$target" != "$previous" ]] || die "Duplicate destination: $target"
     done
+    targets+=("$target")
+    [[ "$(basename "$source_file")" != .gitconfig ]] || deploy_gitconfig=1
+done
+
+# A source symlink must not depend on a destination that will be replaced.
+# Validate across the whole selection before backing up any destination.
+for source_file in "${sources[@]}"; do
+    [[ -L "$source_file" ]] || continue
+    for index in "${!targets[@]}"; do
+        target="${targets[$index]}"
+        if [[ -L "$target" && "$(readlink "$target")" = "${sources[$index]}" ]]; then
+            continue  # This destination is already correct and will not change.
+        fi
+        [[ ! "$source_file" -ef "$target" ]] || die "Source depends on a destination being replaced: $source_file -> $target"
+    done
+done
+
+if [[ $dry_run -eq 1 ]]; then
+    [[ $install_packages -eq 0 ]] || printf 'Would install missing Homebrew packages and Oh My Zsh.\n'
+    for index in "${!sources[@]}"; do
+        printf 'Would link %s -> %s (backing up any existing target).\n' "${targets[$index]}" "${sources[$index]}"
+    done
+    exit 0
 fi
 
-# Run postmake.sh
-"$SCRIPT_DIR/postmake.sh"
+# Capture global identity before replacing .gitconfig, never repository overrides.
+if [[ $deploy_gitconfig -eq 1 ]]; then
+    # shellcheck source=vars.sh
+    source "$SCRIPT_DIR/vars.sh"
+fi
+
+if [[ $install_packages -eq 1 ]]; then
+    "$SCRIPT_DIR/install_packages.sh"
+    zsh_dir="${ZSH:-$HOME/.oh-my-zsh}"
+    if [[ ! -f "$zsh_dir/oh-my-zsh.sh" ]]; then
+        [[ ! -e "$zsh_dir" && ! -L "$zsh_dir" ]] || die "Incomplete Oh My Zsh installation: $zsh_dir"
+        # Clone only: do not replace .zshrc, change the login shell, or launch zsh.
+        git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$zsh_dir"
+    fi
+fi
+
+if [[ $deploy_gitconfig -eq 1 ]]; then
+    "$SCRIPT_DIR/postmake.sh"
+fi
+
+for index in "${!sources[@]}"; do
+    source_file="${sources[$index]}"
+    target="${targets[$index]}"
+    if [[ -L "$target" && "$(readlink "$target")" = "$source_file" ]]; then
+        printf 'Already linked: %s\n' "$target"
+        continue
+    fi
+    if [[ -e "$target" || -L "$target" ]]; then
+        if [[ -z "$backup_dir" ]]; then
+            backup_root="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/backups"
+            mkdir -p "$backup_root"
+            backup_dir="$(mktemp -d "$backup_root/$(date +%Y%m%d-%H%M%S).XXXXXX")"
+        fi
+        mv "$target" "$backup_dir/"
+        printf 'Backed up: %s -> %s/\n' "$target" "$backup_dir"
+    fi
+    ln -s "$source_file" "$target"
+    printf 'Linked: %s -> %s\n' "$target" "$source_file"
+done
+
+printf 'Done. Open a new terminal or run: exec zsh\n'

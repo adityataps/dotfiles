@@ -1,29 +1,32 @@
-[include]
-	# Machine-specific identity (user.name, user.email) — not tracked in repo
-	path = ~/.gitconfig.local
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 [alias]
-	getdef = !git remote show origin | sed -n \"/HEAD branch/s/.*: //p\"    # Gets default branch for current repo
-	getcurr = !git rev-parse --abbrev-ref HEAD
+	# Resolve locally; refresh missing/stale metadata with git remote set-head origin -a.
+	getdef = "!f() { ref=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD) || { echo 'Run git remote set-head origin -a to resolve the default branch.' >&2; return 1; }; printf '%s\\n' \"${ref#origin/}\"; }; f"
+	getcurr = symbolic-ref --quiet --short HEAD
 	co = checkout
-	com = !git checkout $(git getdef)
-	pom = !git pull origin $(git getdef)
-	comb = "!git compom; git co -b"
-	compom = "!git com; git pom"
-	spomp = "!git stash; git pom; git stash pop"
-	scomp = "!git stash; git compom; git stash pop"
-	scomb = "!git scomp; git co -b"
+	com = "!f() { branch=$(git getdef) && git checkout \"$branch\"; }; f"
+	pom = "!f() { branch=$(git getdef) && git pull --rebase origin \"$branch\"; }; f"
+	comb = "!f() { git compom && git checkout -b \"$@\"; }; f"
+	compom = "!git com && git pom"
+	# Restore only the stash this invocation created, and only after success.
+	withstash = "!f() { before=$(git rev-parse -q --verify refs/stash || :); git stash push -m \"dotfiles-auto-$$-$(date +%s)\" || return; after=$(git rev-parse -q --verify refs/stash || :); \"$@\" || return; if [ \"$before\" != \"$after\" ]; then current=$(git rev-parse -q --verify refs/stash || :); [ \"$current\" = \"$after\" ] || { echo 'Stash stack changed; leaving stashes intact for manual recovery.' >&2; return 1; }; git stash pop; fi; }; f"
+	spomp = "!git withstash git pom"
+	scomp = "!git withstash git compom"
+	scomb = "!git withstash git comb"
 	fa = fetch --all
 	st = status
-	fast = "!git fa; git st"
+	fast = "!git fa && git st"
 	up = pull
-	pushu = !git push --set-upstream origin $(git getcurr)
+	pushu = "!f() { branch=$(git getcurr) && git push --set-upstream origin \"$branch\"; }; f"
 	lol = log --oneline --graph
 	cfg = config
-	rim = !git rebase -i $(git getdef)
+	rim = "!f() { branch=$(git getdef) && git rebase -i \"$branch\"; }; f"
 [pull]
 	rebase = true
+[include]
+	# Apply machine-local identity and preferences after shared defaults.
+	path = ~/.gitconfig.local
