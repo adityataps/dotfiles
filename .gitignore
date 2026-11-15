@@ -5,7 +5,7 @@
 ._*
 
 # JetBrains IDEs
-#.idea/
+.idea/
 *.iml
 
 # Go
@@ -60,6 +60,5 @@ yarn-error.log*
 # Local configuration
 *.local
 *.local.*
-vars.sh
 .env
 .env.local

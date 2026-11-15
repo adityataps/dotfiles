@@ -1,47 +1,48 @@
 #!/bin/bash
-
-# Early exit if OS is not Darwin (macOS)
-[ "$(uname -s)" != "Darwin" ] && echo "This script only runs on macOS" && exit 0
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 BREWFILE="$SCRIPT_DIR/packages/Brewfile"
+mode=install
 
 usage() {
-    echo "Usage: $0 [--capture]"
-    echo "Options:"
-    echo "  --capture    Overwrite Brewfile with currently installed Homebrew packages"
+    printf 'Usage: %s [--capture | --upgrade | --help]\n' "$0"
+    printf 'Default: install missing Brewfile packages without upgrading existing ones.\n'
+}
+[[ $# -le 1 ]] || { usage >&2; exit 1; }
+case "${1:-}" in
+    '') ;;
+    --capture) mode=capture ;;
+    --upgrade) mode=upgrade ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; exit 1 ;;
+esac
+
+[[ "$(uname -s)" = Darwin ]] || { printf 'Package installation requires macOS.\n' >&2; exit 1; }
+
+# A new terminal may not have Homebrew on PATH yet (Apple Silicon or Intel).
+if ! command -v brew >/dev/null 2>&1; then
+    for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [[ -x "$brew_bin" ]]; then
+            eval "$("$brew_bin" shellenv)"
+            break
+        fi
+    done
+fi
+command -v brew >/dev/null 2>&1 || {
+    printf 'Homebrew not found. Run bootstrap.sh or install it from https://brew.sh.\n' >&2
     exit 1
 }
 
-# Parse arguments
-for arg in "$@"; do
-    case "$arg" in
-        --capture)
-            echo "Capturing installed packages -> $BREWFILE"
-            brew bundle dump --force --file="$BREWFILE"
-            echo "Done. Review and commit $BREWFILE."
-            exit 0
-            ;;
-        *) echo "Unknown option: $arg"; usage ;;
-    esac
-done
-
-# Install Homebrew if not present
-if ! command -v brew &> /dev/null; then
-    echo "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-else
-    echo "Homebrew is already installed."
-fi
-
-brew update
-brew upgrade
-
-# Install all packages from Brewfile
-# HOMEBREW_CASK_OPTS=--adopt takes ownership of pre-existing apps not yet managed by Homebrew
-HOMEBREW_CASK_OPTS="--adopt" brew bundle install --file="$BREWFILE"
-
-brew cleanup
-
-echo "Brew installation and package setup complete."
+case "$mode" in
+    capture)
+        brew bundle dump --force --file="$BREWFILE"
+        printf 'Captured packages. Review %s before committing.\n' "$BREWFILE"
+        ;;
+    upgrade)
+        brew update
+        brew bundle upgrade --file="$BREWFILE"
+        ;;
+    install)
+        brew bundle install --no-upgrade --file="$BREWFILE"
+        ;;
+esac
