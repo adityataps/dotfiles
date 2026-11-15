@@ -1,6 +1,3 @@
-[include]
-	# Machine-specific identity and preferences, kept outside the repo.
-	path = ~/.gitconfig.local
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
@@ -16,7 +13,7 @@
 	comb = "!f() { git compom && git checkout -b \"$@\"; }; f"
 	compom = "!git com && git pom"
 	# Restore only the stash this invocation created, and only after success.
-	withstash = "!f() { before=$(git rev-parse -q --verify refs/stash || :); git stash push || return; after=$(git rev-parse -q --verify refs/stash || :); \"$@\" || return; if [ \"$before\" != \"$after\" ]; then current=$(git rev-parse -q --verify refs/stash || :); [ \"$current\" = \"$after\" ] || { echo 'Stash stack changed; leaving stashes intact for manual recovery.' >&2; return 1; }; git stash pop; fi; }; f"
+	withstash = "!f() { before=$(git rev-parse -q --verify refs/stash || :); git stash push -m \"dotfiles-auto-$$-$(date +%s)\" || return; after=$(git rev-parse -q --verify refs/stash || :); \"$@\" || return; if [ \"$before\" != \"$after\" ]; then current=$(git rev-parse -q --verify refs/stash || :); [ \"$current\" = \"$after\" ] || { echo 'Stash stack changed; leaving stashes intact for manual recovery.' >&2; return 1; }; git stash pop; fi; }; f"
 	spomp = "!git withstash git pom"
 	scomp = "!git withstash git compom"
 	scomb = "!git withstash git comb"
@@ -30,3 +27,6 @@
 	rim = "!f() { branch=$(git getdef) && git rebase -i \"$branch\"; }; f"
 [pull]
 	rebase = true
+[include]
+	# Apply machine-local identity and preferences after shared defaults.
+	path = ~/.gitconfig.local

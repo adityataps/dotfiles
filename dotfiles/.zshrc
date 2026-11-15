@@ -42,7 +42,12 @@ setopt APPEND_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE
 export EDITOR="${EDITOR:-vi}"
 
 # Shell configuration
-alias zshrc='${EDITOR} ~/.zshrc'
+unalias zshrc 2>/dev/null || true
+function zshrc {
+  local -a editor_command
+  editor_command=("${(@Q)${(z)EDITOR}}")
+  "${editor_command[@]}" "$HOME/.zshrc"
+}
 alias zshrcr='source ~/.zshrc'
 alias zshrcx='exec zsh'
 

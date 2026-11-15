@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Read `AGENTS.md` first for shared repository instructions, compatibility constraints, and verification commands. Keep these files consistent when changing deployment behavior.
+
 ## What This Repo Does
 
 Personal dotfiles manager for macOS/oh-my-zsh. The scripts symlink config files from `dotfiles/` into `$HOME` and manage Homebrew packages via a `Brewfile`.

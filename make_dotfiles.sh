@@ -35,6 +35,18 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# Personal banner, kept as readable text rather than an encoded blob.
+cat <<'BANNER'
+       ,,                    ,...,,    ,,
+     `7MM           mm     .d' ""db  `7MM
+       MM           MM     dM`         MM
+  ,M""bMM  ,pW"Wq.mmMMmm  mMMmm`7MM    MM  .gP"Ya  ,pP"Ybd
+,AP    MM 6W'   `Wb MM     MM    MM    MM ,M'   Yb 8I   `"
+8MI    MM 8M     M8 MM     MM    MM    MM 8M"""""" `YMMMa.
+`Mb    MM YA.   ,A9 MM     MM    MM    MM YM.    , L.   I8
+ `Wbmd"MML.`Ybmd9'  `Mbmo.JMML..JMML..JMML.`Mbmmd' M9mmmP'
+BANNER
+
 if [[ ${#sources[@]} -eq 0 ]]; then
     sources=("$SCRIPT_DIR"/dotfiles/*)
 fi
@@ -55,6 +67,19 @@ for index in "${!sources[@]}"; do
     done
     targets+=("$target")
     [[ "$(basename "$source_file")" != .gitconfig ]] || deploy_gitconfig=1
+done
+
+# A source symlink must not depend on a destination that will be replaced.
+# Validate across the whole selection before backing up any destination.
+for source_file in "${sources[@]}"; do
+    [[ -L "$source_file" ]] || continue
+    for index in "${!targets[@]}"; do
+        target="${targets[$index]}"
+        if [[ -L "$target" && "$(readlink "$target")" = "${sources[$index]}" ]]; then
+            continue  # This destination is already correct and will not change.
+        fi
+        [[ ! "$source_file" -ef "$target" ]] || die "Source depends on a destination being replaced: $source_file -> $target"
+    done
 done
 
 if [[ $dry_run -eq 1 ]]; then

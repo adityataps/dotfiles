@@ -212,6 +212,13 @@ class DotfilesTests(DotfilesFixture):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.git("config", "--get", "user.name"), "Local User")
 
+    def test_local_git_preferences_override_shared_defaults(self):
+        local = self.home / ".gitconfig.local"
+        self.git("config", "--file", str(local), "pull.rebase", "false")
+        result = self.script("make_dotfiles.sh")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.git("config", "--get", "pull.rebase"), "false")
+
     def test_bootstrap_rejects_dirty_existing_checkout(self):
         destination = self.home / ".dotfiles"
         destination.mkdir()
@@ -272,6 +279,57 @@ class DotfilesTests(DotfilesFixture):
         result = self.script("make_dotfiles.sh", str(path), str(second))
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.home / ".custom").exists())
+
+    def test_source_symlink_to_destination_is_rejected_before_backup(self):
+        target = self.home / ".custom"
+        target.write_text("precious config\n")
+        source = self.base / ".custom"
+        source.symlink_to(target)
+        result = self.script("make_dotfiles.sh", str(source))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(target.is_symlink())
+        self.assertEqual(target.read_text(), "precious config\n")
+        self.assertFalse((self.home / ".local").exists())
+
+    def test_source_symlink_to_another_selected_destination_is_rejected(self):
+        target = self.home / ".other"
+        target.write_text("old other config\n")
+        source = self.base / ".custom"
+        source.symlink_to(target)
+        other_source = self.source(".other")
+        result = self.script("make_dotfiles.sh", str(source), str(other_source))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(target.read_text(), "old other config\n")
+        self.assertFalse((self.home / ".custom").exists())
+
+    def test_already_deployed_source_symlink_is_a_noop(self):
+        real = self.source("real-config")
+        source = self.base / ".custom"
+        source.symlink_to(real)
+        target = self.home / ".custom"
+        target.symlink_to(source)
+        result = self.script("make_dotfiles.sh", str(source))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(target.read_text(), "new config\n")
+        self.assertFalse((self.home / ".local").exists())
+
+    def test_zshrc_editor_accepts_arguments_and_preserves_home_with_spaces(self):
+        zsh = shutil.which("zsh")
+        log = self.base / "editor-args"
+        self.fake("record-editor", f'printf "%s\\n" "$@" > "{log}"')
+        self.env.update(EDITOR="record-editor --wait", HOMEBREW_PREFIX=str(self.base / "missing-brew"))
+        result = self.run_cmd(zsh, "-dfc", 'source "$1"; eval zshrc', "test", str(ROOT / "dotfiles/.zshrc"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.read_text().splitlines(), ["--wait", str(self.home / ".zshrc")])
+
+    def test_zshrc_editor_accepts_a_quoted_executable_path(self):
+        zsh = shutil.which("zsh")
+        log = self.base / "editor-args"
+        self.fake("record-editor", f'printf "%s\\n" "$@" > "{log}"')
+        self.env.update(EDITOR=f'"{self.bin / "record-editor"}" --wait', HOMEBREW_PREFIX=str(self.base / "missing-brew"))
+        result = self.run_cmd(zsh, "-dfc", 'source "$1"; source "$1"; eval zshrc', "test", str(ROOT / "dotfiles/.zshrc"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.read_text().splitlines(), ["--wait", str(self.home / ".zshrc")])
 
 
 class GitAliasTests(DotfilesFixture):
@@ -355,6 +413,19 @@ class GitAliasTests(DotfilesFixture):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.git("show", "stash:tracked", cwd=self.repo), "user work")
         self.assertEqual((self.repo / "tracked").read_text(), "command-work\n")
+
+    def test_stash_wrapper_restores_work_identical_to_older_stash_at_same_time(self):
+        self.env.update(GIT_AUTHOR_DATE="2026-01-01T00:00:00+0000", GIT_COMMITTER_DATE="2026-01-01T00:00:00+0000")
+        (self.repo / "tracked").write_text("identical work\n")
+        self.git("stash", "push", "-q", cwd=self.repo)
+        old = self.git("rev-parse", "refs/stash", cwd=self.repo)
+        (self.repo / "tracked").write_text("identical work\n")
+        self.git("config", "alias.pom", "!true", cwd=self.repo)
+        result = self.run_cmd(GIT, "spomp", cwd=self.repo)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.repo / "tracked").read_text(), "identical work\n")
+        self.assertEqual(self.git("rev-parse", "refs/stash", cwd=self.repo), old)
+        self.assertEqual(len(self.git("stash", "list", cwd=self.repo).splitlines()), 1)
 
 
 if __name__ == "__main__":
