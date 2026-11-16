@@ -2,9 +2,6 @@
 # Install:  brew bundle install --file=packages/Brewfile
 # Capture:  brew bundle dump --force --file=packages/Brewfile
 
-# Taps
-tap "hashicorp/tap"
-
 # Formulae
 brew "ack"
 brew "docker"
@@ -21,11 +18,8 @@ brew "rust"
 brew "tree"
 brew "uv"
 brew "zsh"
-brew "hashicorp/tap/terraform"
 
 # Casks
-cask "alfred"
-cask "claude"
 cask "iterm2"
 cask "jetbrains-toolbox"
 cask "obsidian"
