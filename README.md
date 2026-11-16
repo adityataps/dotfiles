@@ -108,6 +108,20 @@ The `brewup` shell alias remains an explicit full Homebrew upgrade and cleanup.
 
 Default-branch shortcuts use local `origin/HEAD` metadata. If missing or outdated, run `git remote set-head origin -a`. Compound commands stop on failure. Stash wrappers restore only their own new stash after success; failures or a changed stash stack leave it available for manual recovery. Untracked files retain Git's default stash behavior and are not stashed.
 
+## Global agent skills
+
+The [shared skill collection](skills/README.md) contains portable workflows for PR preparation, review, handoffs, repository inspection, Git naming, US English, documentation, and draft-to-review transitions.
+
+Installation is explicit and separate from dotfile/package setup:
+
+```sh
+./install_skills.sh --dry-run
+./install_skills.sh
+./install_skills.sh --agent codex conventional-commits review-changes
+```
+
+The installer links individual skill directories into `~/.agents/skills/` for Codex and `~/.claude/skills/` for Claude Code. It preserves existing skills and rejects conflicts before writing links. Keep this checkout at a stable path. These are local agent skills, not GPT memory or an upload to a cloud skill catalog.
+
 ## Checks
 
 ```sh

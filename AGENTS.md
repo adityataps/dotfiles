@@ -1,6 +1,6 @@
 # Repository guide
 
-Personal macOS dotfiles for Zsh/Oh My Zsh, Git, and Homebrew. Keep this repo small and understandable; preserve its aliases, Bureau theme, and ASCII banner when making maintenance changes.
+Personal macOS dotfiles for Zsh/Oh My Zsh, Git, and Homebrew, plus portable global skills for terminal coding agents. Keep this repo small and understandable; preserve its aliases, Bureau theme, and ASCII banner when making maintenance changes.
 
 ## Layout and entry points
 
@@ -8,6 +8,8 @@ Personal macOS dotfiles for Zsh/Oh My Zsh, Git, and Homebrew. Keep this repo sma
 - `bootstrap.sh`: fresh-Mac prerequisites and checkout; delegates deployment to `make_dotfiles.sh -i`.
 - `vars.sh`: sourced before replacing `.gitconfig`; captures global/local identity without repository overrides.
 - `postmake.sh`: initializes or fills missing identity fields in `~/.gitconfig.local`; preserves existing settings.
+- `install_skills.sh`: opt-in, conflict-safe links from `skills/` into Codex and Claude Code user-level directories; works on macOS and Linux.
+- `skills/`: shared standard `SKILL.md` sources; edit these instead of duplicating per-agent copies.
 - `install_packages.sh`: installs missing Brewfile packages; `--upgrade` explicitly upgrades, `--capture` replaces the manifest.
 - `dotfiles/.zshrc` and `dotfiles/.gitconfig`: deployed configs. Editing a deployed symlink can edit this checkout directly.
 - `packages/Brewfile`: package manifest; retain the user's package choices.
@@ -44,6 +46,8 @@ Use `./make_dotfiles.sh --dry-run` to inspect deployment. Do not run real instal
 - Compound Git aliases must stop on failure. Stash wrappers must preserve recoverable work and must not pop another operation's stash.
 - Use `.yaml` for YAML files. Keep IDE-generated `.idea/` and `*.iml` files untracked unless a specific shared setting is intentionally selected.
 
-## Scope
+## Skill maintenance
 
-Keep global agent-skill installation and deployment out of this cleanup PR. Add those in a separate PR after this one is verified. Update this guide when entry points, safety guarantees, or verification commands change.
+Keep shared skills tool-neutral with standard `name` and `description` frontmatter. Do not add host-specific tool schemas or assume local symlinks install skills in ChatGPT, Claude cloud sessions, or provider-managed catalogs. Never copy private installed skills or overwrite existing skill folders automatically. Skill installation stays opt-in and separate from normal dotfile deployment.
+
+Validate metadata with the existing test suite and exercise changed instructions with realistic scenarios; format validation alone does not verify behavior. Update this guide when entry points, safety guarantees, or verification commands change.

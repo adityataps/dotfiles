@@ -45,6 +45,7 @@ python3 -m unittest discover -s tests -v
 ## Architecture
 
 - **`dotfiles/`** — files here are symlinked to `$HOME` by `make_dotfiles.sh`. Currently contains `.zshrc` and `.gitconfig`. Edits to `~/.<file>` are edits to the repo file directly.
+- **`skills/`** — portable global agent workflows, explicitly linked by `install_skills.sh`; not installed by ordinary dotfile setup.
 - **`packages/Brewfile`** — single source of truth for all Homebrew packages (formulae and casks). Managed via `brew bundle`.
 - **`misc_dotfiles/`** — reference configs not auto-deployed (e.g. `.docker/` settings for manual use).
 - **`iterm_colors/`** — iTerm2 color schemes to be imported manually via iTerm2 preferences.
