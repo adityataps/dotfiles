@@ -331,6 +331,38 @@ class DotfilesTests(DotfilesFixture):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(log.read_text().splitlines(), ["--wait", str(self.home / ".zshrc")])
 
+    def ssh_prompt(self, ssh_env, with_theme=True):
+        for key in ("SSH_CONNECTION", "SSH_TTY", "SSH_CLIENT"):
+            self.env.pop(key, None)
+        self.env.update(ssh_env)
+        theme = self.base / "test-oh-my-zsh"
+        theme.mkdir()
+        if with_theme:
+            (theme / "oh-my-zsh.sh").write_text("PROMPT='> $ '\nRPROMPT='git-status'\n")
+        self.env.update(ZSH=str(theme), HOMEBREW_PREFIX=str(self.base / "missing-brew"))
+        result = self.run_cmd(shutil.which("zsh"), "-dfc",
+                              'PROMPT="> "; RPROMPT="git-status"; source "$1"; source "$1"; print -r -- "$PROMPT"; print -r -- "$RPROMPT"',
+                              "test", str(ROOT / "dotfiles/.zshrc"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+        return result.stdout.splitlines()
+
+    def test_local_prompt_has_no_ssh_badge(self):
+        self.assertEqual(self.ssh_prompt({}), ["> $ ", "git-status"])
+
+    def test_ssh_connection_adds_one_badge_without_replacing_theme(self):
+        prompt, right = self.ssh_prompt({"SSH_CONNECTION": "192.0.2.1 50000 192.0.2.2 22"})
+        self.assertEqual(prompt, "%F{yellow}[SSH]%f > $ ")
+        self.assertEqual(right, "git-status")
+
+    def test_ssh_tty_also_enables_badge(self):
+        self.assertIn("[SSH]", self.ssh_prompt({"SSH_TTY": "/dev/pts/1"})[0])
+
+    def test_badge_reload_without_oh_my_zsh_is_idempotent(self):
+        prompt, right = self.ssh_prompt({"SSH_CONNECTION": "192.0.2.1 50000 192.0.2.2 22"}, with_theme=False)
+        self.assertEqual(prompt, "%F{yellow}[SSH]%f > ")
+        self.assertEqual(right, "git-status")
+
 
 class GitAliasTests(DotfilesFixture):
     def setUp(self):

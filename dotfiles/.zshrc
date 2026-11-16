@@ -105,3 +105,13 @@ fi
 if [[ -f "$HOME/.zshrc.local" ]]; then
   source "$HOME/.zshrc.local"
 fi
+
+# Label remote SSH shells while preserving the theme and right-hand prompt.
+function _dotfiles_ssh_prompt {
+  local badge='%F{yellow}[SSH]%f '
+  PROMPT="${PROMPT#"$badge"}"
+  if [[ -n ${SSH_CONNECTION:-} || -n ${SSH_TTY:-} ]]; then
+    PROMPT="$badge$PROMPT"
+  fi
+}
+_dotfiles_ssh_prompt
